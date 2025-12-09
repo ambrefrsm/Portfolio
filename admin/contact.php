@@ -12,6 +12,18 @@ require "../config/connexion.php";
 if(isset($_GET['delete']) && is_numeric($_GET['delete']))
 {
    $id = htmlspecialchars($_GET['delete']);
+   $verif = $bdd->prepare("SELECt * FROM contact WHERE id=?");
+   $verif->execute([$id]);
+   $don = $verif->fetch();
+   if(!$don)
+   {
+       header("LOCATION:contact.php");
+       exit();
+   }
+   $sup = $bdd->prepare("DELETE FROM contact WHERE id=?");
+   $sup->execute([$id]);
+   header("LOCATION:contact.php?successdelete=".$id);
+   exit();
 }
 
 ?>
@@ -23,7 +35,7 @@ if(isset($_GET['delete']) && is_numeric($_GET['delete']))
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="style.css">
-    <title>portfolio - Administration - Gestion des contact</title>
+    <title>Stock - Administration - Gestion des contact</title>
 </head>
 <body>
 <?php

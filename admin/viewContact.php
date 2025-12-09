@@ -9,23 +9,24 @@ if(!isset($_SESSION['login']))
 // besoin de la bdd
 require "../config/connexion.php";
 
-if(isset($_GET['delete']) && is_numeric($_GET['delete']))
+if(isset($_GET['id']) && is_numeric($_GET['id']))
 {
-   $id = htmlspecialchars($_GET['delete']);
-   $verif = $bdd->prepare("SELECt * FROM contact WHERE id=?");
-   $verif->execute([$id]);
-   $don = $verif->fetch();
-   if(!$don)
-   {
-       header("LOCATION:contact.php");
-       exit();
-   }
-   $sup = $bdd->prepare("DELETE FROM contact WHERE id=?");
-   $sup->execute([$id]);
-   header("LOCATION:contact.php?successdelete=".$id);
-   exit();
+    $id = htmlspecialchars($_GET['id']);
+}
+else{
+    header("LOCATION:contact.php");
+    exit();
 }
 
+// vérifier si l'id existe dans la bdd
+$verif = $bdd->prepare("SELECT id, nom, email, DATE_FORMAT(date,'%d/%m/%Y %Hh%i') AS mydate, message FROM contact WHERE id=?");
+$verif->execute([$id]);
+$donVerif = $verif->fetch();
+if(!$donVerif)
+{
+    header("LOCATION:../404.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,48 +42,22 @@ if(isset($_GET['delete']) && is_numeric($_GET['delete']))
 <?php
 include("partials/nav.php");
 ?>
-<div class="container-fluid">
-    <h1>Gestion des contact</h1>
-    <?php
-        if(isset($_GET['successdelete']) && is_numeric($_GET['successdelete']))
-        {
-            echo "<div class='alert alert-danger my-2'>Vous avez bien supprimÃ© le message #".$_GET['successdelete']."</div>";
-        }
-
-    ?>
-
-    <table class="table table-striped">
-
-        <thead>
-        <tr class="text-center">
-            <th>#</th>
-            <th>Nom</th>
-            <th>E-mail</th>
-            <th>Date</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <?php
-            $req = $bdd->query("SELECT id, nom, email, DATE_FORMAT(date,'%d/%m/%Y %Hh%i') AS mydate FROM contact");
-            while($don = $req->fetch())
-            {
-                echo "<tr class='text-center'>";
-                    echo "<td>".$don['id']."</td>";
-                    echo "<td>".$don['nom']."</td>";
-                    echo "<td>".$don['email']."</td>";
-                    echo "<td>".$don['mydate']."</td>";
-                    echo "<td>";
-                        echo "<a href='viewContact.php?id=".$don['id']."' class='btn btn-primary'>Voir</a>";
-                        echo "<a href='contact.php?delete=".$don['id']."' class='btn btn-danger mx-2'>Supprimer</a>";
-                    echo "</td>";
-                echo "</tr>";
-            }
-            $req->closeCursor();
-        ?>
-        </tbody>
-    </table>
+<div class="container">
+    <a href="contact.php" class="btn btn-secondary my-3">Retour</a>
+    <div class="row">
+        <div class="col-md-6 py-5">
+            <h1>Message de <?= $donVerif['nom'] ?></h1>
+            <h4>Envoyé le : <?= $donVerif['mydate'] ?></h4>
+            <h3>Email: <?= $donVerif['email'] ?></h3>
+            <hr>
+            <a href="mailto:<?= $donVerif['email'] ?>" class="btn btn-success">Répondre</a>
+        </div>
+        <div class="col-md-6 py-5">
+            <h3>Message</h3>
+            <hr>
+            <?= nl2br($donVerif['message']) ?>
+        </div>
+    </div>
 </div>
 </body>
 </html>
